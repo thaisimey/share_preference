@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:saving_object/constant/constant.dart';
+import 'package:saving_object/data/local_data.dart';
 import 'package:saving_object/model/user.dart';
 import 'package:saving_object/view/home_view.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +14,8 @@ class LoginView extends StatefulWidget {
 
 class _LoginViewState extends State<LoginView> {
 
+  LocalData localData = LocalData();
+
   String name= "simey";
   String pass = "simey";
   bool isLoggedIn = false;
@@ -20,23 +24,12 @@ class _LoginViewState extends State<LoginView> {
 
   List<User> listUser = [];
 
-  Future<void> saveUser() async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    pref.setString("name", name);
-    pref.setString("pass", pass);
-  }
 
-  Future<String> getUser() async {
-    SharedPreferences pref = await SharedPreferences.getInstance();
-    String username = pref.getString("name");
-    String password = pref.getString("pass");
-    return username;
 
-  }
+
 
   void login() {
     if(nameController.text == listUser[0].username && passController.text == listUser[0].password) {
-      isLoggedIn = true;
       print("Login Successfully");
     } else {
       print("failed");
@@ -44,20 +37,7 @@ class _LoginViewState extends State<LoginView> {
   }
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
-    listUser.add(User(1, "User", "https://pbs.twimg.com/media/EbNX_erVcAUlwIx.jpg","Male",name, pass));
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      var username = await getUser();
-      print(username);
-    if( username != null ) {
-      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => HomeView(user: listUser[0],)));
-    } else {
-      Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => LoginView()));
-    }
-    });
-
 
   }
 
@@ -107,18 +87,17 @@ class _LoginViewState extends State<LoginView> {
                     ],
                   ),
                   GestureDetector(
-                    onTap: () {
-                      saveUser();
-                        if(nameController.text == listUser[0].username && passController.text == listUser[0].password) {
-                          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => HomeView(user: listUser[0],)));
-                          isLoggedIn = true;
+                    onTap: () async{
+                      User user = User(id: 1, name: nameController.text, photo: "https://pbs.twimg.com/media/EbNX_erVcAUlwIx.jpg", gender: "Male",username: nameController.text, password: passController.text);
+                      if(nameController.text == 'simey' && passController.text == '123') {
+                          try {
+                            await localData.saveUser(key: Constant.user, value: user.toJson());
+                          } catch(e) {
+                          }
+                          Navigator.push(context, MaterialPageRoute(builder: (BuildContext context) => HomeView()));
                         } else {
-                          print("failed");
                           isLoggedIn = false;
                         }
-
-
-
                     },
                     child: Padding(
                       padding: const EdgeInsets.only(left:18.0,right: 18,top: 18,bottom: 40),
